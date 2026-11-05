@@ -1,0 +1,34 @@
+# Framework CI/CD - single entry point.
+#
+# Hands every relevant event to Quill's framework pipeline, which decides
+# what to do with it: open a draft pull request for a feature branch,
+# validate the framework on a pull request, and start the framework sync
+# once a change merges to main.
+#
+# Do not rename the `pipeline` job. This repository's ruleset requires
+# status checks called "pipeline / validate" and "pipeline / check-protection",
+# made from this job's name and the job names in the called workflow, so a
+# rename leaves the ruleset waiting for a check that never reports.
+name: Framework CI
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    uses: bailey-medics/quillmedical/.github/workflows/framework-pipeline.yml@main
+    secrets:
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
